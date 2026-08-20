@@ -1,0 +1,7 @@
+{
+  "name": "First Aid AI Guide",
+  "description": "AI-powered emergency first aid assistant with step-by-step guidance, offline protocols, user history, and personalized safety recommendations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
