@@ -61,15 +61,10 @@ jobs:
             -o -name "gradlew" \) \
             -print
 
-      - name: Install Gradle if Wrapper Is Missing
+      - name: Verify Gradle Wrapper
         run: |
-          if [ ! -f "./gradlew" ]; then
-            echo "gradlew is missing."
-            echo "Using system Gradle to generate the wrapper."
-
-            gradle wrapper
-          fi
-
+          test -f ./gradlew
+          test -f ./gradle/wrapper/gradle-wrapper.properties
           chmod +x ./gradlew
 
       - name: Show Gradle Version
