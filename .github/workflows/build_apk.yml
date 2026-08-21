@@ -5,10 +5,12 @@ on:
     branches:
       - main
       - master
+
   pull_request:
     branches:
       - main
       - master
+
   workflow_dispatch:
 
 jobs:
@@ -20,7 +22,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -31,47 +33,73 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Accept Android SDK Licenses
-        run: yes | sdkmanager --licenses || true
+        run: |
+          yes | sdkmanager --licenses || true
 
       - name: Prepare Environment
         run: |
           if [ -f .env.example ]; then
             cp .env.example .env
-          else
+          elif [ ! -f .env ]; then
             echo "GEMINI_API_KEY=dummy_ci_key" > .env
           fi
 
           touch local.properties
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
-        with:
-          gradle-version: '8.13'
+      - name: Check Project Files
+        run: |
+          echo "=== Project structure ==="
+          ls -la
 
-      - name: Create Gradle Wrapper if Missing
+          echo "=== Gradle files ==="
+          find . -maxdepth 3 \
+            \( -name "build.gradle" \
+            -o -name "build.gradle.kts" \
+            -o -name "settings.gradle" \
+            -o -name "settings.gradle.kts" \
+            -o -name "gradle-wrapper.properties" \
+            -o -name "gradlew" \) \
+            -print
+
+      - name: Install Gradle if Wrapper Is Missing
         run: |
           if [ ! -f "./gradlew" ]; then
-            echo "Gradle wrapper not found. Creating it..."
+            echo "gradlew is missing."
+            echo "Using system Gradle to generate the wrapper."
+
             gradle wrapper
           fi
 
           chmod +x ./gradlew
 
-          echo "Checking Gradle..."
+      - name: Show Gradle Version
+        run: |
           ./gradlew --version
+
+      - name: Show Android Tasks
+        run: |
+          ./gradlew tasks --stacktrace --no-daemon
 
       - name: Build Debug APK
         env:
-          GRADLE_OPTS: "-Djava.awt.headless=true -Dksp.use.daemon=false"
+          GRADLE_OPTS: "-Djava.awt.headless=true"
         run: |
-          ./gradlew assembleDebug \
+          ./gradlew :app:assembleDebug \
             --stacktrace \
             --no-daemon
 
+      - name: Find APK
+        if: success()
+        run: |
+          echo "=== APK files ==="
+          find . -type f -name "*.apk" -print
+
       - name: Upload Debug APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: FirstAid-App-Debug
-          path: app/build/outputs/apk/debug/*.apk
+          path: |
+            app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 7
