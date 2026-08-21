@@ -45,7 +45,7 @@ jobs:
           fi
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace --no-daemon
+        run: ./gradlew assembleDebug --stacktrace --no-daemon -Djava.awt.headless=true -Dksp.use.daemon=false
 
       - name: Locate and Upload APK Artifact
         uses: actions/upload-artifact@v4
