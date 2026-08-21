@@ -57,29 +57,27 @@ jobs:
             -o -name "build.gradle.kts" \
             -o -name "settings.gradle" \
             -o -name "settings.gradle.kts" \
-            -o -name "gradle-wrapper.properties" \
-            -o -name "gradlew" \) \
+            -o -name "gradle-wrapper.properties" \) \
             -print
 
-      - name: Verify Gradle Wrapper
-        run: |
-          test -f ./gradlew
-          test -f ./gradle/wrapper/gradle-wrapper.properties
-          chmod +x ./gradlew
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '9.3.1'
 
       - name: Show Gradle Version
         run: |
-          ./gradlew --version
+          gradle --version
 
       - name: Show Android Tasks
         run: |
-          ./gradlew tasks --stacktrace --no-daemon
+          gradle tasks --stacktrace --no-daemon
 
       - name: Build Debug APK
         env:
           GRADLE_OPTS: "-Djava.awt.headless=true"
         run: |
-          ./gradlew :app:assembleDebug \
+          gradle :app:assembleDebug \
             --stacktrace \
             --no-daemon
 
